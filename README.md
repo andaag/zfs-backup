@@ -2,6 +2,8 @@
 
 A simple app I made for myself to backup zfs snapshots to S3.
 
+This is not designed as a generic tool, but rather something tiny for myself to do my backups. If it's useful for you, great. It's less than 200 lines of code, and most of the actual work is pushed to zfs/the aws s3 client.
+
 ## Why
 
 I considered rsync.net for zfs backups, but I'm backing up fairly small amounts of data, so their minimum purchase of 1tb of data seemed excessive. Also this is backup of a backup server, so I do not need quick access to it.
