@@ -1,0 +1,6 @@
+.ipynb_checkpoints/
+.venv/
+.virtual_documents/
+__pycache__
+.vscode
+.mypy_cache
