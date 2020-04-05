@@ -26,6 +26,7 @@ full_backup = "yearly" in snapshot or "monthly" in snapshot
 - This does intentionally not split files, this is needed in s3 uploads once a snapshot becomes larger than 5tb. Avoiding splitting means hash checking/consistency checking is easier.
 - Ensure that you backup your encrypted key for this as well, and that it is backed up somewhere else. If you don't have that and your volume is encrypted this is worthless...
 - The amazon etag algorithm is undocumented, but not complex. However it is subject to change... See md5_checksum in confirm_consistency.py. (Basically the etag is [md5sums in chunks]-[number of chunks])
+- This does not push directly to glacier, it pushes to S3. In order to move from there to glacier you'll need a bucket lifecycle policy.
 
 ## Info on my setup
 
