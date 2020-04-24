@@ -19,6 +19,9 @@ This runs backups of zfs -w, aka if your volume is encrypted (like mine is), tha
 ```python
 # zfs_backup.lib.py:
 full_backup = "yearly" in snapshot or "monthly" in snapshot
+
+# confirm_consistency.py
+DEFAULT_MULTIPART_CHUNKSIZE = X
 ```
 
 - Otherwise incremental snapshots is done

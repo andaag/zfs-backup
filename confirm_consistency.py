@@ -7,6 +7,9 @@ from s3fs import S3FileSystem
 
 from zfs_backup_lib import ZfsSyncedSnapshot, get_sync_state
 
+# I use aws configure set default.s3.multipart_chunksize 256MB, default is 8MB
+DEFAULT_MULTIPART_CHUNKSIZE = 256
+
 if "ZFS_BACKUP_BUCKET" not in os.environ:
     print(
         "ERROR : Please export ZFS_BACKUP_BUCKET=bucketname before running this script"
@@ -16,7 +19,7 @@ WANTED_BUCKET = os.environ["ZFS_BACKUP_BUCKET"]
 s3fs = S3FileSystem()
 
 
-def md5_checksum(entry: ZfsSyncedSnapshot, chunksize_in_mb=8, large_file=False):
+def md5_checksum(entry: ZfsSyncedSnapshot, chunksize_in_mb=DEFAULT_MULTIPART_CHUNKSIZE, large_file=False):
     p = subprocess.Popen(
         f"sudo {entry.short_send_cmd()}", stdout=subprocess.PIPE, shell=True
     )
@@ -40,7 +43,7 @@ def md5_checksum(entry: ZfsSyncedSnapshot, chunksize_in_mb=8, large_file=False):
 def calc_chunksize(filesize, etag):
     filesize_mb = float(filesize / 1024 / 1024)
     aws_chunks = float(etag.split("-")[-1])
-    return max(math.ceil(filesize_mb / aws_chunks), 8)
+    return max(math.ceil(filesize_mb / aws_chunks), DEFAULT_MULTIPART_CHUNKSIZE)
 
 
 def perform_check():
