@@ -43,24 +43,28 @@ class ZfsSyncedSnapshot:
         return s3_name.replace("_AT_", "@").replace("_CN_", ":")
 
 
-def get_sync_state():
+def get_sync_state(pool):
     db = []
     for row in (
         subprocess.check_output("zfs list -t snapshot -H", shell=True)
         .decode("utf-8")
         .split("\n")
     ):
-        if row == "":
+        if row == "" or not row.startswith(pool + "/"):
             continue
         row = row.split("\t")
         snapshot = row[0]
         parent = None
-        full_backup = "yearly" in snapshot or "monthly" in snapshot
-        if "hourly" in snapshot:
-            continue
-        if not full_backup:
-            parent = db[-1]
-        db.append(ZfsSyncedSnapshot(snapshot, parent))
+        if "yearly" in snapshot or "monthly" in snapshot or "daily" in snapshot:
+            full_backup = "yearly" in snapshot or "monthly" in snapshot
+            if "hourly" in snapshot:
+                continue
+            if not full_backup:
+                parent = db[-1]
+            db.append(ZfsSyncedSnapshot(snapshot, parent))
+        else:
+            if "autozsys" not in snapshot and "_hourly" not in snapshot:
+                print("Skipping snapshot {} - unknown naming.".format(snapshot))
     return db
 
 

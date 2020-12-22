@@ -11,11 +11,12 @@ from zfs_backup_lib import ZfsSyncedSnapshot, get_sync_state
 DEFAULT_MULTIPART_CHUNKSIZE = 256
 
 if "ZFS_BACKUP_BUCKET" not in os.environ:
-    print(
-        "ERROR : Please export ZFS_BACKUP_BUCKET=bucketname before running this script"
-    )
-    sys.exit(1)
+    raise Exception("Please export ZFS_BACKUP_BUCKET=bucketname before running this script")
+if "ZFS_BACKUP_POOL" not in os.environ:
+    raise Exception("Please export ZFS_BACKUP_POOL=pool before running this script")
+
 WANTED_BUCKET = os.environ["ZFS_BACKUP_BUCKET"]
+WANTED_POOL = os.environ["ZFS_BACKUP_POOL"]
 s3fs = S3FileSystem()
 
 
@@ -48,10 +49,12 @@ def calc_chunksize(filesize, etag):
 
 def perform_check():
     failures = 0
-    all_states = {v.snapshot: v for v in get_sync_state()}
-    for s3_path in s3fs.glob(f"s3://{WANTED_BUCKET}/*/*"):
-        tags = s3fs.get_tags(s3_path)
+    all_states = {v.snapshot: v for v in get_sync_state(WANTED_POOL)}
+    for s3_path in s3fs.glob(f"s3://{WANTED_BUCKET}/**"):
         fileinfo = s3fs.info(s3_path)
+        if fileinfo["type"] == "directory":
+            continue
+        tags = s3fs.get_tags(s3_path)
         etag = fileinfo["ETag"][1:-1]  # strip quotes
 
         snapshot = ZfsSyncedSnapshot.reverse_s3_name(
