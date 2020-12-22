@@ -44,6 +44,7 @@ DEFAULT_MULTIPART_CHUNKSIZE = X
 #!/bin/bash
 export CHECK_URL="https://hc-ping.com/X"
 export ZFS_BACKUP_BUCKET="bucket-name"
+export ZFS_BACKUP_POOL="rpool"
 export AWS_SECRET_ACCESS_KEY="X"
 export AWS_ACCESS_KEY_ID="X"
 

@@ -78,9 +78,17 @@ def perform_check():
             print(f"{entry.snapshot} - OK (computed)")
             s3fs.put_tags(s3_path, {"zfsbackup_confirmed": "true"})
         else:
-            print(f"{entry.snapshot} - FAILURE local:{checksum} aws:{etag}")
-            failures += 1
+            perc_size = (entry.estimate_size() / fileinfo['Size']) * 100
+            if perc_size > 0.95:
+                print(f"{entry.snapshot} - WARN Checksum mismatch - but filesize within {perc_size} size estimate")
+                print(f"      local:{checksum} aws:{etag} ")
+            else:
+                print(f"{entry.snapshot} - FAILURE local:{checksum} aws:{etag}")
+                failures += 1
+            #print(f"Local size:{entry.estimate_size()} size on aws:{fileinfo['Size']} - {perc_size}")
+            
     if failures > 0:
+        print("FAILURES DETECTED!")
         sys.exit(1)
 
 
