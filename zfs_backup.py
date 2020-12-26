@@ -11,11 +11,12 @@ if "ZFS_BACKUP_POOL" not in os.environ:
 
 WANTED_BUCKET = os.environ["ZFS_BACKUP_BUCKET"]
 WANTED_POOL = os.environ["ZFS_BACKUP_POOL"]
+BACKUP_MAXDAYS = int(os.environ["BACKUP_MAXDAYS"]) if "BACKUP_MAXDAYS" in os.environ else 60
 
 s3fs = S3FileSystem()
 existing_backups = [v.replace(f"{WANTED_BUCKET}/", "") for v in s3fs.glob(f"s3://{WANTED_BUCKET}/**")]
 
-for entry in get_sync_state(WANTED_POOL):
+for entry in get_sync_state(WANTED_POOL, BACKUP_MAXDAYS):
     target_name = entry.get_s3_name()
     if target_name in existing_backups:
         s3_size = s3fs.size(f"{WANTED_BUCKET}/{target_name}")

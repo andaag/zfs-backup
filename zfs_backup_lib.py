@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import subprocess
-
+from datetime import datetime, timedelta
 
 @dataclass
 class ZfsSyncedSnapshot:
@@ -35,6 +35,12 @@ class ZfsSyncedSnapshot:
         else:
             return f"zfs send -w {self.snapshot}"
 
+    def get_creation_time(self):
+        return datetime.fromtimestamp(int((subprocess.check_output(f"zfs get creation -Hpr {self.snapshot}", shell=True)
+            .decode("utf-8")
+            .strip()).split("\t")[2]))
+        
+
     def get_s3_name(self):
         return self.snapshot.replace("@", "_AT_").replace(":", "_CN_")
 
@@ -43,7 +49,9 @@ class ZfsSyncedSnapshot:
         return s3_name.replace("_AT_", "@").replace("_CN_", ":")
 
 
-def get_sync_state(pool):
+def get_sync_state(pool, maxdays=60):
+    now = datetime.now()
+
     db = []
     for row in (
         subprocess.check_output("zfs list -t snapshot -H", shell=True)
@@ -61,7 +69,12 @@ def get_sync_state(pool):
                 continue
             if not full_backup:
                 parent = db[-1]
-            db.append(ZfsSyncedSnapshot(snapshot, parent))
+            entry = ZfsSyncedSnapshot(snapshot, parent)
+            backup_age = (now - entry.get_creation_time())
+            if timedelta(days=maxdays) < backup_age:
+                print(f"{snapshot} - Skipping - too old, set BACKUP_MAXDAYS to override. {backup_age}")
+                continue
+            db.append(entry)
         else:
             if "autozsys" not in snapshot and "_hourly" not in snapshot:
                 print("Skipping snapshot {} - unknown naming.".format(snapshot))
