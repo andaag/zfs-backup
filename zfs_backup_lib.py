@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import subprocess
 from datetime import datetime, timedelta
+from typing import List
 
 @dataclass
 class ZfsSyncedSnapshot:
@@ -49,7 +50,7 @@ class ZfsSyncedSnapshot:
         return s3_name.replace("_AT_", "@").replace("_CN_", ":")
 
 
-def get_sync_state(pool, maxdays=60):
+def get_sync_state(pool, maxdays=60) -> List[ZfsSyncedSnapshot]:
     now = datetime.now()
 
     db = []
@@ -71,7 +72,7 @@ def get_sync_state(pool, maxdays=60):
                 parent = db[-1]
             entry = ZfsSyncedSnapshot(snapshot, parent)
             backup_age = (now - entry.get_creation_time())
-            if timedelta(days=maxdays) < backup_age:
+            if maxdays and timedelta(days=maxdays) < backup_age:
                 print(f"{snapshot} - Skipping - too old, set BACKUP_MAXDAYS to override. {backup_age}")
                 continue
             db.append(entry)

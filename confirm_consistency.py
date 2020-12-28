@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import hashlib
 import sys
@@ -18,7 +19,6 @@ if "ZFS_BACKUP_POOL" not in os.environ:
 WANTED_BUCKET = os.environ["ZFS_BACKUP_BUCKET"]
 WANTED_POOL = os.environ["ZFS_BACKUP_POOL"]
 s3fs = S3FileSystem()
-
 
 def md5_checksum(entry: ZfsSyncedSnapshot, chunksize_in_mb=DEFAULT_MULTIPART_CHUNKSIZE, large_file=False):
     p = subprocess.Popen(

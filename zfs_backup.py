@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import subprocess
 import sys
@@ -19,7 +20,7 @@ existing_backups = [v.replace(f"{WANTED_BUCKET}/", "") for v in s3fs.glob(f"s3:/
 for entry in get_sync_state(WANTED_POOL, BACKUP_MAXDAYS):
     target_name = entry.get_s3_name()
     if target_name in existing_backups:
-        s3_size = s3fs.size(f"{WANTED_BUCKET}/{target_name}")
+        # s3_size = s3fs.size(f"{WANTED_BUCKET}/{target_name}")
         print(f"{entry.snapshot} - In sync")
         continue
     backup_cmd = entry.short_send_cmd()
