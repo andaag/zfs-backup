@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List
 
 @dataclass
@@ -50,9 +50,7 @@ class ZfsSyncedSnapshot:
         return s3_name.replace("_AT_", "@").replace("_CN_", ":")
 
 
-def get_sync_state(pool, maxdays=60) -> List[ZfsSyncedSnapshot]:
-    now = datetime.now()
-
+def get_sync_state(pool) -> List[ZfsSyncedSnapshot]:
     db = []
     for row in (
         subprocess.check_output("zfs list -t snapshot -H", shell=True)
@@ -64,17 +62,13 @@ def get_sync_state(pool, maxdays=60) -> List[ZfsSyncedSnapshot]:
         row = row.split("\t")
         snapshot = row[0]
         parent = None
-        if "yearly" in snapshot or "monthly" in snapshot or "daily" in snapshot:
-            full_backup = "yearly" in snapshot or "monthly" in snapshot
+        if "monthly" in snapshot or "daily" in snapshot:
+            full_backup = "monthly" in snapshot
             if "hourly" in snapshot:
                 continue
             if not full_backup:
                 parent = db[-1]
             entry = ZfsSyncedSnapshot(snapshot, parent)
-            backup_age = (now - entry.get_creation_time())
-            if maxdays and timedelta(days=maxdays) < backup_age:
-                print(f"{snapshot} - Skipping - too old, set BACKUP_MAXDAYS to override. {backup_age}")
-                continue
             db.append(entry)
         else:
             if "autozsys" not in snapshot and "_hourly" not in snapshot:
